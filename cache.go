@@ -69,12 +69,9 @@ func (c *Cache) Delete(key string) error {
 func (c *Cache) Has(key string) bool {
 	ctx := context.Background()
 	res, err := c.Client.Exists(ctx, key).Result()
-	if err != nil {
+	if res == 0 || err != nil {
 		return false
 	}
 
-	if res == 0 {
-		return false
-	}
 	return true
 }
