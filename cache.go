@@ -46,6 +46,7 @@ func (c *Cache) Get(key string) (any, error) {
 	return val, nil
 }
 
+// Delete removes an item from the cache, by key.
 func (c *Cache) Delete(key string) error {
 	ctx := context.Background()
 	return c.Client.Del(ctx, key).Err()
