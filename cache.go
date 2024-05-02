@@ -127,3 +127,17 @@ func (c *Cache) Has(key string) bool {
 
 	return true
 }
+
+// GetTime retrieves a value from the cache by the specified key, and attempts
+// to parse it into a time.Time value using the provided layout.
+func (c *Cache) GetTime(key, layout string) (time.Time, error) {
+	str, err := c.Get(key)
+	if err != nil {
+		return time.Time{}, err
+	}
+	t, err := time.Parse(layout, str.(string))
+	if err != nil {
+		return time.Time{}, err
+	}
+	return t, nil
+}
