@@ -31,12 +31,7 @@ func (c *Cache) Set(key string, data any, expires ...time.Duration) error {
 		expiration = expires[0]
 	}
 
-	err := c.Client.Set(ctx, key, data, expiration).Err()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return c.Client.Set(ctx, key, data, expiration).Err()
 }
 
 // Get attempts to retrieve a value from the cache.
@@ -49,4 +44,9 @@ func (c *Cache) Get(key string) (any, error) {
 	}
 
 	return val, nil
+}
+
+func (c *Cache) Delete(key string) error {
+	ctx := context.Background()
+	return c.Client.Del(ctx, key).Err()
 }
