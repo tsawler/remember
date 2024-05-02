@@ -2,6 +2,7 @@ package remember
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"time"
@@ -21,6 +22,17 @@ func New(server, port, password string, db int) *Cache {
 	})
 
 	return &Cache{Client: client}
+}
+
+// UnmarshalBinary takes a value retrieved from the cache, which will be a JSON string,
+// and unmarshals it into value, which must be a pointer. Any non-scalar type we want
+// to store in the cache must implement the MarshalBinary method, i.e.:
+//
+//	 func (m Student) MarshalBinary() ([]byte, error) {
+//		  return json.Marshal(m)
+//	 }
+func (c *Cache) UnmarshalBinary(data []byte, value any) error {
+	return json.Unmarshal(data, value)
 }
 
 // Set puts a value into Redis. The final parameter, expires, is optional.
@@ -50,4 +62,19 @@ func (c *Cache) Get(key string) (any, error) {
 func (c *Cache) Delete(key string) error {
 	ctx := context.Background()
 	return c.Client.Del(ctx, key).Err()
+}
+
+// Has checks to see if the supplied key is in the cache and returns true if found,
+// otherwise false.
+func (c *Cache) Has(key string) bool {
+	ctx := context.Background()
+	res, err := c.Client.Exists(ctx, key).Result()
+	if err != nil {
+		return false
+	}
+
+	if res == 0 {
+		return false
+	}
+	return true
 }
