@@ -1,4 +1,4 @@
-module github.com/tsawler/cache
+module github.com/tsawler/remember
 
 go 1.22.2
 
