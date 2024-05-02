@@ -15,8 +15,8 @@ type Cache struct {
 	Client *redis.Client
 }
 
-// Entry is a map to hold values, so we can serialize them
-type Entry map[string]interface{}
+// CacheEntry is a map to hold values, so we can serialize them
+type CacheEntry map[string]interface{}
 
 // New is a factory method which returns an instance of Cache.
 func New(server, port, password string, db int) *Cache {
@@ -56,7 +56,7 @@ func (c *Cache) Set(key string, data any, expires ...time.Duration) error {
 		expiration = expires[0]
 	}
 
-	entry := Entry{}
+	entry := CacheEntry{}
 	entry[key] = data
 	encoded, err := encode(entry)
 	if err != nil {
@@ -146,7 +146,7 @@ func (c *Cache) GetTime(key string) (time.Time, error) {
 }
 
 // Encode serializes item, from a map[string]interface{}
-func encode(item Entry) ([]byte, error) {
+func encode(item CacheEntry) ([]byte, error) {
 	b := bytes.Buffer{}
 	e := gob.NewEncoder(&b)
 	err := e.Encode(item)
@@ -157,8 +157,8 @@ func encode(item Entry) ([]byte, error) {
 }
 
 // Decode unserializes item into a map[string]interface{}
-func decode(str string) (Entry, error) {
-	item := Entry{}
+func decode(str string) (CacheEntry, error) {
+	item := CacheEntry{}
 	b := bytes.Buffer{}
 	b.Write([]byte(str))
 	d := gob.NewDecoder(&b)
