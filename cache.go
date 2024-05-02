@@ -1,8 +1,9 @@
 package remember
 
 import (
+	"bytes"
 	"context"
-	"encoding/json"
+	"encoding/gob"
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"strconv"
@@ -13,6 +14,9 @@ import (
 type Cache struct {
 	Client *redis.Client
 }
+
+// Entry is a map to hold values, so we can serialize them
+type Entry map[string]interface{}
 
 // New is a factory method which returns an instance of Cache.
 func New(server, port, password string, db int) *Cache {
@@ -25,15 +29,22 @@ func New(server, port, password string, db int) *Cache {
 	return &Cache{Client: client}
 }
 
-// UnmarshalBinary takes a value retrieved from the cache, which will be a JSON string.
-// We unmarshal it into value, which must be a pointer. Any non-scalar type we want
-// to store in the cache must implement the MarshalBinary method, i.e.:
-//
-//	 func (m Student) MarshalBinary() ([]byte, error) {
-//		  return json.Marshal(m)
-//	 }
-func (c *Cache) UnmarshalBinary(data string, value any) error {
-	return json.Unmarshal([]byte(data), value)
+// Get attempts to retrieve a value from the cache.
+func (c *Cache) Get(key string) (any, error) {
+	ctx := context.Background()
+
+	val, err := c.Client.Get(ctx, key).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	decoded, err := decode(val)
+	if err != nil {
+		fmt.Println("Error decoding", err)
+		return nil, err
+	}
+	item := decoded[key]
+	return item, nil
 }
 
 // Set puts a value into Redis. The final parameter, expires, is optional.
@@ -45,37 +56,27 @@ func (c *Cache) Set(key string, data any, expires ...time.Duration) error {
 		expiration = expires[0]
 	}
 
-	return c.Client.Set(ctx, key, data, expiration).Err()
-}
-
-// Get attempts to retrieve a value from the cache.
-func (c *Cache) Get(key string) (any, error) {
-	ctx := context.Background()
-
-	val, err := c.Client.Get(ctx, key).Result()
+	entry := Entry{}
+	entry[key] = data
+	encoded, err := encode(entry)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return val, nil
+	return c.Client.Set(ctx, key, string(encoded), expiration).Err()
 }
 
 // GetInt to retrieve a value from the cache, convert it to an int, and return it.
 func (c *Cache) GetInt(key string) (int, error) {
-	val, err := c.GetString(key)
+	val, err := c.Get(key)
 	if err != nil {
 		return 0, err
 	}
 
-	i, err := strconv.Atoi(val)
-	if err != nil {
-		return 0, err
-	}
-
-	return i, nil
+	return val.(int), nil
 }
 
-// GetFloat64 to retrieve a value from the cache, convert it to an float64, and return it.
+// GetFloat64 to retrieve a value from the cache, convert it to a float64, and return it.
 func (c *Cache) GetFloat64(key string) (float64, error) {
 	val, err := c.GetString(key)
 	if err != nil {
@@ -90,7 +91,7 @@ func (c *Cache) GetFloat64(key string) (float64, error) {
 	return i, nil
 }
 
-// GetFloat32 to retrieve a value from the cache, convert it to an float32, and return it.
+// GetFloat32 to retrieve a value from the cache, convert it to a float32, and return it.
 func (c *Cache) GetFloat32(key string) (float64, error) {
 	val, err := c.GetString(key)
 	if err != nil {
@@ -144,4 +145,28 @@ func (c *Cache) GetTime(key, layout string) (time.Time, error) {
 		return time.Time{}, err
 	}
 	return t, nil
+}
+
+// Encode serializes item, from a map[string]interface{}
+func encode(item Entry) ([]byte, error) {
+	b := bytes.Buffer{}
+	e := gob.NewEncoder(&b)
+	err := e.Encode(item)
+	if err != nil {
+		return nil, err
+	}
+	return b.Bytes(), nil
+}
+
+// Decode unserializes item into a map[string]interface{}
+func decode(str string) (Entry, error) {
+	item := Entry{}
+	b := bytes.Buffer{}
+	b.Write([]byte(str))
+	d := gob.NewDecoder(&b)
+	err := d.Decode(&item)
+	if err != nil {
+		return nil, err
+	}
+	return item, nil
 }
