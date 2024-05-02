@@ -39,6 +39,7 @@ func (c *Cache) UnmarshalBinary(data string, value any) error {
 // Set puts a value into Redis. The final parameter, expires, is optional.
 func (c *Cache) Set(key string, data any, expires ...time.Duration) error {
 	ctx := context.Background()
+
 	var expiration time.Duration
 	if len(expires) > 0 {
 		expiration = expires[0]
@@ -61,9 +62,7 @@ func (c *Cache) Get(key string) (any, error) {
 
 // GetInt to retrieve a value from the cache, convert it to an int, and return it.
 func (c *Cache) GetInt(key string) (int, error) {
-	ctx := context.Background()
-
-	val, err := c.Client.Get(ctx, key).Result()
+	val, err := c.GetString(key)
 	if err != nil {
 		return 0, err
 	}
@@ -78,9 +77,7 @@ func (c *Cache) GetInt(key string) (int, error) {
 
 // GetFloat64 to retrieve a value from the cache, convert it to an float64, and return it.
 func (c *Cache) GetFloat64(key string) (float64, error) {
-	ctx := context.Background()
-
-	val, err := c.Client.Get(ctx, key).Result()
+	val, err := c.GetString(key)
 	if err != nil {
 		return 0, err
 	}
@@ -95,9 +92,7 @@ func (c *Cache) GetFloat64(key string) (float64, error) {
 
 // GetFloat32 to retrieve a value from the cache, convert it to an float32, and return it.
 func (c *Cache) GetFloat32(key string) (float64, error) {
-	ctx := context.Background()
-
-	val, err := c.Client.Get(ctx, key).Result()
+	val, err := c.GetString(key)
 	if err != nil {
 		return 0, err
 	}
@@ -108,6 +103,15 @@ func (c *Cache) GetFloat32(key string) (float64, error) {
 	}
 
 	return i, nil
+}
+
+// GetString to retrieve a value from the cache and return it as a string.
+func (c *Cache) GetString(key string) (string, error) {
+	s, err := c.Get(key)
+	if err != nil {
+		return "", err
+	}
+	return s.(string), nil
 }
 
 // Delete removes an item from the cache, by key.
@@ -131,11 +135,11 @@ func (c *Cache) Has(key string) bool {
 // GetTime retrieves a value from the cache by the specified key, and attempts
 // to parse it into a time.Time value using the provided layout.
 func (c *Cache) GetTime(key, layout string) (time.Time, error) {
-	str, err := c.Get(key)
+	str, err := c.GetString(key)
 	if err != nil {
 		return time.Time{}, err
 	}
-	t, err := time.Parse(layout, str.(string))
+	t, err := time.Parse(layout, str)
 	if err != nil {
 		return time.Time{}, err
 	}
