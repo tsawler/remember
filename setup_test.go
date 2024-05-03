@@ -7,7 +7,7 @@ import (
 )
 
 var testRedis *miniredis.Miniredis
-var testCache *Cache
+var testCache CacheInterface
 
 func TestMain(m *testing.M) {
 	s, err := miniredis.Run()

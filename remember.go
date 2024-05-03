@@ -11,6 +11,20 @@ import (
 	"time"
 )
 
+// CacheInterface is the interface that anything providing
+// cache functionality must satisfy.
+type CacheInterface interface {
+	Empty() error
+	EmptyByMatch(match string) error
+	Forget(key string) error
+	Get(key string) (any, error)
+	GetInt(key string) (int, error)
+	GetString(key string) (string, error)
+	GetTime(key string) (time.Time, error)
+	Has(key string) bool
+	Set(key string, data any, expires ...time.Duration) error
+}
+
 // Cache is the main type for this package.
 type Cache struct {
 	Client *redis.Client
@@ -29,8 +43,9 @@ type Options struct {
 // CacheEntry is a map to hold values, so we can serialize them
 type CacheEntry map[string]interface{}
 
-// New is a factory method which returns an instance of Cache.
-func New(o ...Options) *Cache {
+// New is a factory method which returns an instance of *Cache,
+// which satisfies the CacheInterface, for future development.
+func New(o ...Options) CacheInterface {
 	var ops Options
 	if len(o) > 0 {
 		ops = o[0]
