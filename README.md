@@ -1,3 +1,9 @@
+<a href="https://golang.org"><img src="https://img.shields.io/badge/powered_by-Go-3362c2.svg?style=flat-square" alt="Built with GoLang"></a>
+[![Version](https://img.shields.io/badge/goversion-1.20.x-blue.svg)](https://golang.org)
+[![License](http://img.shields.io/badge/license-mit-blue.svg?style=flat-square)](https://raw.githubusercontent.com/tsawler/remember/master/LICENSE.md)
+<a href="https://pkg.go.dev/github.com/tsawler/remember"><img src="https://img.shields.io/badge/godoc-reference-%23007d9c.svg"></a>
+[![Go Report Card](https://goreportcard.com/badge/github.com/tsawler/remember)](https://goreportcard.com/report/github.com/tsawler/remember)
+
 # Remember
 
 Package remember provides an easy way to implement a Redis cache in your Go application. 
