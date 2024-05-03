@@ -16,9 +16,7 @@ type Cache struct {
 	Prefix string
 }
 
-// CacheEntry is a map to hold values, so we can serialize them
-type CacheEntry map[string]interface{}
-
+// Options is the type used to configure a Cache object.
 type Options struct {
 	Server   string // The server where Redis exists.
 	Port     string // The port Redis is listening on.
@@ -26,6 +24,9 @@ type Options struct {
 	Prefix   string // A prefix to use for all keys for this client.
 	DB       int    // Database. Specifying 0 (the default) means use the default database.
 }
+
+// CacheEntry is a map to hold values, so we can serialize them
+type CacheEntry map[string]interface{}
 
 // New is a factory method which returns an instance of Cache.
 func New(o ...Options) *Cache {
