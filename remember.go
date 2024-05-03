@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// CacheInterface is the interface that anything providing
+// CacheInterface is the interface which anything providing
 // cache functionality must satisfy.
 type CacheInterface interface {
 	Empty() error
