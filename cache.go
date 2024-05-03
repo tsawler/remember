@@ -115,8 +115,8 @@ func (c *Cache) GetString(key string) (string, error) {
 	return s.(string), nil
 }
 
-// Delete removes an item from the cache, by key.
-func (c *Cache) Delete(key string) error {
+// Forget removes an item from the cache, by key.
+func (c *Cache) Forget(key string) error {
 	ctx := context.Background()
 	return c.Client.Del(ctx, key).Err()
 }
