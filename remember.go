@@ -1,3 +1,5 @@
+//Package remember provides an easy way to implement a Redis cache in your Go application.
+
 package remember
 
 import (
