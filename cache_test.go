@@ -45,10 +45,10 @@ func TestSet(t *testing.T) {
 
 		{
 			name:          "expired",
-			key:           "v1",
+			key:           "v2",
 			data:          "bar",
-			expires:       time.Microsecond,
-			wait:          time.Millisecond,
+			expires:       time.Millisecond,
+			wait:          2 * time.Millisecond,
 			errorExpected: true,
 		},
 	}
@@ -69,4 +69,49 @@ func TestSet(t *testing.T) {
 		}
 
 	}
+
+	testCache.Empty()
+}
+
+func TestGetInt(t *testing.T) {
+
+	var tests = []struct {
+		name          string
+		key           string
+		data          int
+		setVal        bool
+		errorExpected bool
+	}{
+		{
+			name:          "valid",
+			key:           "v1",
+			data:          10,
+			setVal:        true,
+			errorExpected: false,
+		},
+
+		{
+			name:          "no key",
+			key:           "non_existent",
+			data:          11,
+			setVal:        false,
+			errorExpected: true,
+		},
+	}
+
+	for _, tt := range tests {
+		if tt.setVal {
+			testCache.Set(tt.key, tt.data)
+		}
+
+		x, err := testCache.GetInt(tt.key)
+		if !tt.errorExpected && err != nil {
+			t.Errorf("%s: received unexpected error: %s", tt.name, err.Error())
+		}
+
+		if !tt.errorExpected && x != tt.data {
+			t.Errorf("%s: wrong value retrieved from cache; expected %d but got %d", tt.name, tt.data, x)
+		}
+	}
+	testCache.Empty()
 }

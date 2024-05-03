@@ -6,7 +6,6 @@ import (
 	"encoding/gob"
 	"fmt"
 	"github.com/redis/go-redis/v9"
-	"strconv"
 	"time"
 )
 
@@ -97,36 +96,6 @@ func (c *Cache) GetInt(key string) (int, error) {
 	}
 
 	return val.(int), nil
-}
-
-// GetFloat64 to retrieve a value from the cache, convert it to a float64, and return it.
-func (c *Cache) GetFloat64(key string) (float64, error) {
-	val, err := c.GetString(fmt.Sprintf("%s:%s", c.Prefix, key))
-	if err != nil {
-		return 0, err
-	}
-
-	i, err := strconv.ParseFloat(val, 64)
-	if err != nil {
-		return 0, err
-	}
-
-	return i, nil
-}
-
-// GetFloat32 to retrieve a value from the cache, convert it to a float32, and return it.
-func (c *Cache) GetFloat32(key string) (float64, error) {
-	val, err := c.GetString(fmt.Sprintf("%s:%s", c.Prefix, key))
-	if err != nil {
-		return 0, err
-	}
-
-	i, err := strconv.ParseFloat(val, 32)
-	if err != nil {
-		return 0, err
-	}
-
-	return i, nil
 }
 
 // GetString to retrieve a value from the cache and return it as a string.
