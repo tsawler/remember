@@ -104,7 +104,7 @@ func (c *Cache) Set(key string, data any, expires ...time.Duration) error {
 	return c.Client.Set(ctx, fmt.Sprintf("%s:%s", c.Prefix, key), string(encoded), expiration).Err()
 }
 
-// GetInt to retrieve a value from the cache, convert it to an int, and return it.
+// GetInt is a convenience method which retrieves a value from the cache, converts it to an int, and returns it.
 func (c *Cache) GetInt(key string) (int, error) {
 	val, err := c.Get(key)
 	if err != nil {
@@ -114,7 +114,7 @@ func (c *Cache) GetInt(key string) (int, error) {
 	return val.(int), nil
 }
 
-// GetString to retrieve a value from the cache and return it as a string.
+// GetString is a convenience method which retrieves a value from the cache and returns it as a string.
 func (c *Cache) GetString(key string) (string, error) {
 	s, err := c.Get(key)
 	if err != nil {
@@ -142,8 +142,7 @@ func (c *Cache) Has(key string) bool {
 	return true
 }
 
-// GetTime retrieves a value from the cache by the specified key,
-// and returns it as time.Time.
+// GetTime retrieves a value from the cache by the specified key and returns it as time.Time.
 func (c *Cache) GetTime(key string) (time.Time, error) {
 	fromCache, err := c.Get(key)
 	if err != nil {
@@ -154,7 +153,7 @@ func (c *Cache) GetTime(key string) (time.Time, error) {
 	return t, nil
 }
 
-// EmptyByMatch removes all entries in redis that match the prefix match
+// EmptyByMatch removes all entries in Redis which have the prefix match.
 func (c *Cache) EmptyByMatch(match string) error {
 	ctx := context.Background()
 
@@ -173,7 +172,7 @@ func (c *Cache) EmptyByMatch(match string) error {
 	return nil
 }
 
-// Empty removes all entries in redis that match the prefix match
+// Empty removes all entries in Redis for a given client.
 func (c *Cache) Empty() error {
 	ctx := context.Background()
 
@@ -192,7 +191,7 @@ func (c *Cache) Empty() error {
 	return nil
 }
 
-// encode serializes item, from a map[string]interface{}
+// encode serializes a CacheEntry for storage in Redis.
 func encode(item CacheEntry) ([]byte, error) {
 	b := bytes.Buffer{}
 	e := gob.NewEncoder(&b)
@@ -203,7 +202,7 @@ func encode(item CacheEntry) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-// decode deserializes item into a map[string]interface{}
+// decode deserializes an item into a map[string]interface{}.
 func decode(str string) (CacheEntry, error) {
 	item := CacheEntry{}
 	b := bytes.Buffer{}
