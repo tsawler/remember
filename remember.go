@@ -40,7 +40,7 @@ type Options struct {
 	DB       int    // Database. Specifying 0 (the default) means use the default database.
 }
 
-// CacheEntry is a map to hold values, so we can serialize them
+// CacheEntry is a map to hold values, so we can serialize them.
 type CacheEntry map[string]interface{}
 
 // New is a factory method which returns an instance of *Cache,
