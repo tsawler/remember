@@ -64,7 +64,7 @@ func TestSet(t *testing.T) {
 			time.Sleep(tt.wait)
 		}
 
-		retrieved, err := testCache.Get(tt.key)
+		retrieved, _ := testCache.Get(tt.key)
 		if !tt.errorExpected && retrieved != tt.data {
 			t.Errorf("%s: incorrect value retrieved; got %s expected %s", tt.name, retrieved, tt.data)
 		}
