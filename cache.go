@@ -169,7 +169,7 @@ func (c *Cache) Empty() error {
 	return nil
 }
 
-// Encode serializes item, from a map[string]interface{}
+// encode serializes item, from a map[string]interface{}
 func encode(item CacheEntry) ([]byte, error) {
 	b := bytes.Buffer{}
 	e := gob.NewEncoder(&b)
@@ -180,7 +180,7 @@ func encode(item CacheEntry) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-// Decode deserializes item into a map[string]interface{}
+// decode deserializes item into a map[string]interface{}
 func decode(str string) (CacheEntry, error) {
 	item := CacheEntry{}
 	b := bytes.Buffer{}
