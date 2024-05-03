@@ -1,4 +1,4 @@
-//Package remember provides an easy way to implement a Redis cache in your Go application.
+// Package remember provides an easy way to implement a Redis cache in your Go application.
 
 package remember
 
@@ -11,8 +11,7 @@ import (
 	"time"
 )
 
-// CacheInterface is the interface which anything providing
-// cache functionality must satisfy.
+// CacheInterface is the interface which anything providing cache functionality must satisfy.
 type CacheInterface interface {
 	Empty() error
 	EmptyByMatch(match string) error
@@ -43,8 +42,7 @@ type Options struct {
 // CacheEntry is a map to hold values, so we can serialize them.
 type CacheEntry map[string]interface{}
 
-// New is a factory method which returns an instance of *Cache,
-// which satisfies the CacheInterface, for future development.
+// New is a factory method which returns an instance of *Cache which satisfies the CacheInterface.
 func New(o ...Options) CacheInterface {
 	var ops Options
 	if len(o) > 0 {
@@ -129,8 +127,7 @@ func (c *Cache) Forget(key string) error {
 	return c.Client.Del(ctx, fmt.Sprintf("%s:%s", c.Prefix, key)).Err()
 }
 
-// Has checks to see if the supplied key is in the cache and returns true if found,
-// otherwise false.
+// Has checks to see if the supplied key is in the cache and returns true if found, otherwise false.
 func (c *Cache) Has(key string) bool {
 	ctx := context.Background()
 
