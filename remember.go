@@ -62,7 +62,6 @@ func (c *Cache) Get(key string) (any, error) {
 
 	decoded, err := decode(val)
 	if err != nil {
-		fmt.Println("Error decoding", err)
 		return nil, err
 	}
 	item := decoded[key]
@@ -117,6 +116,7 @@ func (c *Cache) Forget(key string) error {
 // otherwise false.
 func (c *Cache) Has(key string) bool {
 	ctx := context.Background()
+
 	res, err := c.Client.Exists(ctx, fmt.Sprintf("%s:%s", c.Prefix, key)).Result()
 	if res == 0 || err != nil {
 		return false
@@ -141,13 +141,16 @@ func (c *Cache) GetTime(key string) (time.Time, error) {
 func (c *Cache) EmptyByMatch(match string) error {
 	ctx := context.Background()
 
-	res, _, err := c.Client.Scan(ctx, 0, fmt.Sprintf("%s:%s*", c.Prefix, match), 0).Result()
+	res, err := c.Client.Keys(ctx, fmt.Sprintf("%s:%s*", c.Prefix, match)).Result()
 	if err != nil {
 		return err
 	}
 
 	for _, x := range res {
-		_ = c.Forget(x)
+		err := c.Client.Del(ctx, x).Err()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -157,13 +160,16 @@ func (c *Cache) EmptyByMatch(match string) error {
 func (c *Cache) Empty() error {
 	ctx := context.Background()
 
-	res, _, err := c.Client.Scan(ctx, 0, fmt.Sprintf("%s*", c.Prefix), 0).Result()
+	res, err := c.Client.Keys(ctx, fmt.Sprintf("%s:*", c.Prefix)).Result()
 	if err != nil {
 		return err
 	}
 
 	for _, x := range res {
-		_ = c.Forget(x)
+		err := c.Client.Del(ctx, x).Err()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
