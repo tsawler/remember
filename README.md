@@ -11,7 +11,7 @@ Package remember provides an easy way to implement a Redis cache in your Go appl
 ## Installation
 Install it in the usual way:
 
-`go get -u github.com/tsawler/remember`
+`go get -u github.com/tsawler/remember/v2`
 
 # Usage
 Create an instance of the `remember.Cache` type by using the `remember.New()` function, and optionally
