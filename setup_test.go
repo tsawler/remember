@@ -2,12 +2,13 @@ package remember
 
 import (
 	"github.com/alicebob/miniredis/v2"
+	"log"
 	"os"
 	"testing"
 )
 
 var testRedis *miniredis.Miniredis
-var testCache CacheInterface
+var testRedisCache, testBadgerCache CacheInterface
 
 func TestMain(m *testing.M) {
 	s, err := miniredis.Run()
@@ -15,13 +16,28 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 	testRedis = s
+	defer s.Close()
 
 	ops := Options{
 		Server: testRedis.Host(),
 		Port:   testRedis.Port(),
 		Prefix: "test_cache",
 	}
-	testCache = New(ops)
+	testRedisCache, _ = New("redis", ops)
+	defer testRedisCache.Close()
 
-	os.Exit(m.Run())
+	testBadgerCache, _ = New("badger", Options{BadgerPath: "./testdata/badger"})
+	defer testBadgerCache.Close()
+
+	m.Run()
+	cleanup()
+
+	os.Exit(0)
+}
+
+func cleanup() {
+	err := os.RemoveAll("./testdata/badger")
+	if err != nil {
+		log.Println("ERROR", err)
+	}
 }

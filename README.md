@@ -60,7 +60,12 @@ func main() {
 	gob.Register(map[string]string{})
 
 	// Connect to Redis.
-	cache := remember.New()
+	cache, _ := remember.New("redis")
+	// close the database pool when finished.
+	defer cache.Close()
+	
+	// Or create & connect to a Badger database. Nothing else changes.
+	// cache, _ := remember.New("badger", remember.Options{BadgerPath: "./badger"})
 
 	// Store a simple string in the cache.
 	fmt.Println("Putting value in the cache with key of foo")
@@ -121,7 +126,7 @@ func main() {
 	fmt.Println("student_mary is in cache after delete:", cache.Has("student_mary"))
 
 	now := time.Now()
-	
+
 	// Put a time.Time type in the cache.
 	err = cache.Set("now", now)
 	if err != nil {

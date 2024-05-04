@@ -1,4 +1,4 @@
-// Package remember provides an easy way to implement a Redis cache in your Go application.
+// Package remember provides an easy way to implement a Redis or Badger cache in your Go application.
 
 package remember
 
@@ -6,8 +6,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/gob"
+	"errors"
 	"fmt"
+	"github.com/dgraph-io/badger/v3"
 	"github.com/redis/go-redis/v9"
+	"github.com/tsawler/toolbox"
+	"log"
 	"time"
 )
 
@@ -22,55 +26,92 @@ type CacheInterface interface {
 	GetTime(key string) (time.Time, error)
 	Has(key string) bool
 	Set(key string, data any, expires ...time.Duration) error
+	Close()
 }
 
-// Cache is the main type for this package.
-type Cache struct {
-	Client *redis.Client
-	Prefix string
+// RedisCache is the type for a Redis-based cache.
+type RedisCache struct {
+	Conn         *redis.Client
+	BadgerClient *badger.DB
+	Prefix       string
 }
 
-// Options is the type used to configure a Cache object.
+// Options is the type used to configure a RedisCache object.
 type Options struct {
-	Server   string // The server where Redis exists.
-	Port     string // The port Redis is listening on.
-	Password string // The password for Redis.
-	Prefix   string // A prefix to use for all keys for this client.
-	DB       int    // Database. Specifying 0 (the default) means use the default database.
+	Server     string // The server where Redis exists.
+	Port       string // The port Redis is listening on.
+	Password   string // The password for Redis.
+	Prefix     string // A prefix to use for all keys for this client.
+	DB         int    // Database. Specifying 0 (the default) means use the default database.
+	BadgerPath string // The location for the badger database on disk.
 }
 
 // CacheEntry is a map to hold values, so we can serialize them.
 type CacheEntry map[string]interface{}
 
-// New is a factory method which returns an instance of *Cache which satisfies the CacheInterface.
-func New(o ...Options) CacheInterface {
+// New is a factory method which returns an instance of *RedisCache which satisfies the CacheInterface.
+func New(cacheType string, o ...Options) (CacheInterface, error) {
 	var ops Options
 	if len(o) > 0 {
 		ops = o[0]
 	} else {
-		ops = Options{
-			Server:   "localhost",
-			Port:     "6379",
-			Password: "",
-			Prefix:   "dev",
-			DB:       0,
+		switch cacheType {
+		case "redis":
+			ops = Options{
+				Server:   "localhost",
+				Port:     "6379",
+				Password: "",
+				Prefix:   "dev",
+				DB:       0,
+			}
+
+		case "badger":
+			ops = Options{
+				BadgerPath: "./badger",
+			}
 		}
 	}
 
-	client := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", ops.Server, ops.Port),
-		Password: ops.Password,
-		DB:       ops.DB,
-	})
+	switch cacheType {
+	case "redis":
+		client := redis.NewClient(&redis.Options{
+			Addr:     fmt.Sprintf("%s:%s", ops.Server, ops.Port),
+			Password: ops.Password,
+			DB:       ops.DB,
+		})
+		return &RedisCache{
+			Conn:   client,
+			Prefix: ops.Prefix,
+		}, nil
 
-	return &Cache{Client: client, Prefix: ops.Prefix}
+	case "badger":
+		var t toolbox.Tools
+		_ = t.CreateDirIfNotExist(ops.BadgerPath)
+		client, err := badger.Open(badger.DefaultOptions(ops.BadgerPath))
+		if err != nil {
+			return nil, err
+		}
+		return &BadgerCache{
+			Conn:   client,
+			Prefix: ops.Prefix,
+		}, nil
+
+	default:
+		log.Println("cacheType is", cacheType)
+		return nil, errors.New("unsupported cache type")
+	}
+}
+
+// Close closes the pool of redis connections
+func (c *RedisCache) Close() {
+	c.Conn.Close()
 }
 
 // Get attempts to retrieve a value from the cache.
-func (c *Cache) Get(key string) (any, error) {
+func (c *RedisCache) Get(key string) (any, error) {
 	ctx := context.Background()
 
-	val, err := c.Client.Get(ctx, fmt.Sprintf("%s:%s", c.Prefix, key)).Result()
+	val, err := c.Conn.Get(ctx, fmt.Sprintf("%s:%s", c.Prefix, key)).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +125,7 @@ func (c *Cache) Get(key string) (any, error) {
 }
 
 // Set puts a value into Redis. The final parameter, expires, is optional.
-func (c *Cache) Set(key string, data any, expires ...time.Duration) error {
+func (c *RedisCache) Set(key string, data any, expires ...time.Duration) error {
 	ctx := context.Background()
 
 	var expiration time.Duration
@@ -99,11 +140,11 @@ func (c *Cache) Set(key string, data any, expires ...time.Duration) error {
 		return err
 	}
 
-	return c.Client.Set(ctx, fmt.Sprintf("%s:%s", c.Prefix, key), string(encoded), expiration).Err()
+	return c.Conn.Set(ctx, fmt.Sprintf("%s:%s", c.Prefix, key), string(encoded), expiration).Err()
 }
 
 // GetInt is a convenience method which retrieves a value from the cache, converts it to an int, and returns it.
-func (c *Cache) GetInt(key string) (int, error) {
+func (c *RedisCache) GetInt(key string) (int, error) {
 	val, err := c.Get(key)
 	if err != nil {
 		return 0, err
@@ -113,7 +154,7 @@ func (c *Cache) GetInt(key string) (int, error) {
 }
 
 // GetString is a convenience method which retrieves a value from the cache and returns it as a string.
-func (c *Cache) GetString(key string) (string, error) {
+func (c *RedisCache) GetString(key string) (string, error) {
 	s, err := c.Get(key)
 	if err != nil {
 		return "", err
@@ -122,16 +163,16 @@ func (c *Cache) GetString(key string) (string, error) {
 }
 
 // Forget removes an item from the cache, by key.
-func (c *Cache) Forget(key string) error {
+func (c *RedisCache) Forget(key string) error {
 	ctx := context.Background()
-	return c.Client.Del(ctx, fmt.Sprintf("%s:%s", c.Prefix, key)).Err()
+	return c.Conn.Del(ctx, fmt.Sprintf("%s:%s", c.Prefix, key)).Err()
 }
 
 // Has checks to see if the supplied key is in the cache and returns true if found, otherwise false.
-func (c *Cache) Has(key string) bool {
+func (c *RedisCache) Has(key string) bool {
 	ctx := context.Background()
 
-	res, err := c.Client.Exists(ctx, fmt.Sprintf("%s:%s", c.Prefix, key)).Result()
+	res, err := c.Conn.Exists(ctx, fmt.Sprintf("%s:%s", c.Prefix, key)).Result()
 	if res == 0 || err != nil {
 		return false
 	}
@@ -140,7 +181,7 @@ func (c *Cache) Has(key string) bool {
 }
 
 // GetTime retrieves a value from the cache by the specified key and returns it as time.Time.
-func (c *Cache) GetTime(key string) (time.Time, error) {
+func (c *RedisCache) GetTime(key string) (time.Time, error) {
 	fromCache, err := c.Get(key)
 	if err != nil {
 		return time.Time{}, err
@@ -151,16 +192,16 @@ func (c *Cache) GetTime(key string) (time.Time, error) {
 }
 
 // EmptyByMatch removes all entries in Redis which have the prefix match.
-func (c *Cache) EmptyByMatch(match string) error {
+func (c *RedisCache) EmptyByMatch(match string) error {
 	ctx := context.Background()
 
-	res, err := c.Client.Keys(ctx, fmt.Sprintf("%s:%s*", c.Prefix, match)).Result()
+	res, err := c.Conn.Keys(ctx, fmt.Sprintf("%s:%s*", c.Prefix, match)).Result()
 	if err != nil {
 		return err
 	}
 
 	for _, x := range res {
-		err := c.Client.Del(ctx, x).Err()
+		err := c.Conn.Del(ctx, x).Err()
 		if err != nil {
 			return err
 		}
@@ -170,16 +211,16 @@ func (c *Cache) EmptyByMatch(match string) error {
 }
 
 // Empty removes all entries in Redis for a given client.
-func (c *Cache) Empty() error {
+func (c *RedisCache) Empty() error {
 	ctx := context.Background()
 
-	res, err := c.Client.Keys(ctx, fmt.Sprintf("%s:*", c.Prefix)).Result()
+	res, err := c.Conn.Keys(ctx, fmt.Sprintf("%s:*", c.Prefix)).Result()
 	if err != nil {
 		return err
 	}
 
 	for _, x := range res {
-		err := c.Client.Del(ctx, x).Err()
+		err := c.Conn.Del(ctx, x).Err()
 		if err != nil {
 			return err
 		}

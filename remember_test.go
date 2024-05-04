@@ -12,17 +12,22 @@ func TestNew(t *testing.T) {
 		Port:   testRedis.Port(),
 		Prefix: "test_cache",
 	}
-	c1 := New(ops)
+	c1, _ := New("redis", ops)
 
 	err := c1.Set("foo", "bar")
 	if err != nil {
 		t.Error("error", err)
 	}
 
-	c2 := New()
+	c2, _ := New("redis")
 	err = c2.Set("foo", "bar")
 	if err != nil {
 		t.Error("error", err)
+	}
+
+	_, err = New("fish")
+	if err == nil {
+		t.Error("expected error but did not get one")
 	}
 }
 
@@ -55,7 +60,7 @@ func TestSet(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		err := testCache.Set(tt.key, tt.data, tt.expires)
+		err := testRedisCache.Set(tt.key, tt.data, tt.expires)
 		if err != nil && !tt.errorExpected {
 			t.Errorf("%s: received unexpected error: %s", tt.name, err.Error())
 		}
@@ -64,14 +69,14 @@ func TestSet(t *testing.T) {
 			time.Sleep(tt.wait)
 		}
 
-		retrieved, _ := testCache.Get(tt.key)
+		retrieved, _ := testRedisCache.Get(tt.key)
 		if !tt.errorExpected && retrieved != tt.data {
 			t.Errorf("%s: incorrect value retrieved; got %s expected %s", tt.name, retrieved, tt.data)
 		}
 
 	}
 
-	testCache.Empty()
+	testRedisCache.Empty()
 }
 
 func TestGetInt(t *testing.T) {
@@ -102,10 +107,10 @@ func TestGetInt(t *testing.T) {
 
 	for _, tt := range tests {
 		if tt.setVal {
-			testCache.Set(tt.key, tt.data)
+			testRedisCache.Set(tt.key, tt.data)
 		}
 
-		x, err := testCache.GetInt(tt.key)
+		x, err := testRedisCache.GetInt(tt.key)
 		if !tt.errorExpected && err != nil {
 			t.Errorf("%s: received unexpected error: %s", tt.name, err.Error())
 		}
@@ -114,7 +119,7 @@ func TestGetInt(t *testing.T) {
 			t.Errorf("%s: wrong value retrieved from cache; expected %d but got %d", tt.name, tt.data, x)
 		}
 	}
-	testCache.Empty()
+	testRedisCache.Empty()
 }
 
 func TestGetString(t *testing.T) {
@@ -145,10 +150,10 @@ func TestGetString(t *testing.T) {
 
 	for _, tt := range tests {
 		if tt.setVal {
-			testCache.Set(tt.key, tt.data)
+			testRedisCache.Set(tt.key, tt.data)
 		}
 
-		x, err := testCache.GetString(tt.key)
+		x, err := testRedisCache.GetString(tt.key)
 		if !tt.errorExpected && err != nil {
 			t.Errorf("%s: received unexpected error: %s", tt.name, err.Error())
 		}
@@ -157,35 +162,35 @@ func TestGetString(t *testing.T) {
 			t.Errorf("%s: wrong value retrieved from cache; expected %s but got %s", tt.name, tt.data, x)
 		}
 	}
-	testCache.Empty()
+	testRedisCache.Empty()
 }
 
 func TestForget(t *testing.T) {
-	_ = testCache.Set("forgetme", "x")
-	err := testCache.Forget("forgetme")
+	_ = testRedisCache.Set("forgetme", "x")
+	err := testRedisCache.Forget("forgetme")
 	if err != nil {
 		t.Error(err)
 	}
 
-	_, err = testCache.Get("forgetme")
+	_, err = testRedisCache.Get("forgetme")
 	if err == nil {
 		t.Error("got something from the cache, and it should not be there")
 	}
-	testCache.Empty()
+	testRedisCache.Empty()
 }
 
 func TestHas(t *testing.T) {
-	_ = testCache.Set("fish", "x")
-	if !testCache.Has("fish") {
+	_ = testRedisCache.Set("fish", "x")
+	if !testRedisCache.Has("fish") {
 		t.Error("should have value in cache, but do not")
 	}
 
-	_ = testCache.Forget("fish")
-	if testCache.Has("fish") {
+	_ = testRedisCache.Forget("fish")
+	if testRedisCache.Has("fish") {
 		t.Error("value should not exist in cache, but it does")
 	}
 
-	testCache.Empty()
+	testRedisCache.Empty()
 }
 
 func TestGetTime(t *testing.T) {
@@ -218,13 +223,13 @@ func TestGetTime(t *testing.T) {
 
 	for _, tt := range tests {
 		if tt.setVal {
-			err := testCache.Set(tt.key, tt.data)
+			err := testRedisCache.Set(tt.key, tt.data)
 			if err != nil {
 				t.Error(err)
 			}
 		}
 
-		x, err := testCache.GetTime(tt.key)
+		x, err := testRedisCache.GetTime(tt.key)
 		if !tt.errorExpected && err != nil {
 			t.Errorf("%s: received unexpected error: %s", tt.name, err.Error())
 		}
@@ -233,44 +238,44 @@ func TestGetTime(t *testing.T) {
 			t.Errorf("%s: wrong value retrieved from cache; expected %s but got %s", tt.name, tt.data, x)
 		}
 	}
-	testCache.Empty()
+	testRedisCache.Empty()
 }
 
 func TestEmptyByMatch(t *testing.T) {
-	_ = testCache.Set("fooa", "bar")
-	_ = testCache.Set("foob", "bar")
-	_ = testCache.Set("fooc", "bar")
+	_ = testRedisCache.Set("fooa", "bar")
+	_ = testRedisCache.Set("foob", "bar")
+	_ = testRedisCache.Set("fooc", "bar")
 
-	err := testCache.EmptyByMatch("foo")
+	err := testRedisCache.EmptyByMatch("foo")
 	if err != nil {
 		t.Error(err)
 	}
 
-	if testCache.Has("fooa") ||
-		testCache.Has("foob") ||
-		testCache.Has("fooc") {
+	if testRedisCache.Has("fooa") ||
+		testRedisCache.Has("foob") ||
+		testRedisCache.Has("fooc") {
 		t.Error("cache still has values beginning with foo")
 	}
 
-	testCache.Empty()
+	testRedisCache.Empty()
 }
 
 func TestEmpty(t *testing.T) {
-	err := testCache.Set("x", "y")
+	err := testRedisCache.Set("x", "y")
 	if err != nil {
 		t.Error("error setting value in cache", err)
 	}
-	x, _ := testCache.Get("x")
+	x, _ := testRedisCache.Get("x")
 	if x != "y" {
 		t.Error("no value retrieved")
 	}
 
-	err = testCache.Empty()
+	err = testRedisCache.Empty()
 	if err != nil {
 		t.Error("error emptying cache", err)
 	}
 
-	x, _ = testCache.Get("x")
+	x, _ = testRedisCache.Get("x")
 	if x != nil {
 		t.Error("unexpected value retrieved", x)
 	}
