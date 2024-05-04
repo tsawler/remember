@@ -11,7 +11,7 @@ Package remember provides an easy way to implement a Redis or Badger cache in yo
 ## Installation
 Install it in the usual way:
 
-`go get -u github.com/tsawler/remember/v2`
+`go get -u github.com/tsawler/remember`
 
 # Usage
 Create an instance of the `remember.Cache` type by using the `remember.New()` function, and optionally
