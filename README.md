@@ -6,7 +6,7 @@
 
 # Remember
 
-Package remember provides an easy way to implement a Redis cache in your Go application. 
+Package remember provides an easy way to implement a Redis or Badger cache in your Go application. 
 
 ## Installation
 Install it in the usual way:
@@ -29,6 +29,7 @@ ops := remember.Options{
     Password: "some_password"  // The password for Redis.
     Prefix:   "myapp"          // A prefix to use for all keys for this client. Useful when multiple clients use the same database.
     DB:       1                // Database. Specifying 0 (the default) means use the default database.
+    BadgerPath string          // The location for the badger database on disk.
 }
 
 cache := remember.New(ops)
