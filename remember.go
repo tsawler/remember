@@ -11,7 +11,6 @@ import (
 	"github.com/dgraph-io/badger/v3"
 	"github.com/redis/go-redis/v9"
 	"github.com/tsawler/toolbox"
-	"log"
 	"time"
 )
 
@@ -26,7 +25,7 @@ type CacheInterface interface {
 	GetTime(key string) (time.Time, error)
 	Has(key string) bool
 	Set(key string, data any, expires ...time.Duration) error
-	Close()
+	Close() error
 }
 
 // RedisCache is the type for a Redis-based cache.
@@ -97,14 +96,13 @@ func New(cacheType string, o ...Options) (CacheInterface, error) {
 		}, nil
 
 	default:
-		log.Println("cacheType is", cacheType)
 		return nil, errors.New("unsupported cache type")
 	}
 }
 
 // Close closes the pool of redis connections
-func (c *RedisCache) Close() {
-	c.Conn.Close()
+func (c *RedisCache) Close() error {
+	return c.Conn.Close()
 }
 
 // Get attempts to retrieve a value from the cache.

@@ -291,3 +291,10 @@ func TestBadgerCache_GetTime(t *testing.T) {
 	}
 	testBadgerCache.Empty()
 }
+
+func TestBadgerCache_Close(t *testing.T) {
+	err := testBadgerCache.Close()
+	if err != nil {
+		t.Error(err)
+	}
+}

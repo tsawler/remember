@@ -20,8 +20,8 @@ func (b *BadgerCache) Has(str string) bool {
 }
 
 // Close closes the badger database.
-func (b *BadgerCache) Close() {
-	b.Conn.Close()
+func (b *BadgerCache) Close() error {
+	return b.Conn.Close()
 }
 
 // Get attempts to retrieve a value from the cache.

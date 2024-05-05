@@ -280,3 +280,10 @@ func TestEmpty(t *testing.T) {
 		t.Error("unexpected value retrieved", x)
 	}
 }
+
+func TestClose(t *testing.T) {
+	err := testRedisCache.Close()
+	if err != nil {
+		t.Error(err)
+	}
+}
