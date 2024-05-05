@@ -28,8 +28,8 @@ ops := remember.Options{
     Port:     "6379"           // The port Redis is listening on.
     Password: "some_password"  // The password for Redis.
     Prefix:   "myapp"          // A prefix to use for all keys for this client. Useful when multiple clients use the same database.
-    DB:       1                // Database. Specifying 0 (the default) means use the default database.
-    BadgerPath string          // The location for the badger database on disk.
+    DB:       0                // Database. Specifying 0 (the default) means use the default database.
+    BadgerPath ""              // The location for the badger database on disk. Defaults to ./badger
 }
 
 cache := remember.New(ops)
