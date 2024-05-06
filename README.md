@@ -64,7 +64,7 @@ func main() {
 
 	// Connect to Redis.
 	cache, _ := remember.New("redis")
-	// close the database pool when finished.
+	// Close the database pool when finished.
 	defer cache.Close()
 	
 	// Alternatively, use "badger" or "boltdb". Nothing else changes.
