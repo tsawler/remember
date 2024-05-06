@@ -34,7 +34,7 @@ ops := &remember.Options{
     BuntDBPath: ""             // The location for the BuntDB database on disk. Use :memory: for in-memory.
 }
 
-cache := remember.New(ops)
+cache, _ := remember.New(ops)
 ~~~
 
 ## Example Program
