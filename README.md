@@ -14,7 +14,7 @@ Install it in the usual way:
 `go get -u github.com/tsawler/remember/v2`
 
 # Usage
-Create an instance of the `remember.Cache` type by using the `remember.New(cacheType string, o ...Options)` function, and optionally
+Create an instance of the `remember.Cache` type by using the `remember.New(cacheType string, o ...*Options)` function, and optionally
 passing it a `remember.Options` variable.  `cacheType` can by redis, buntdb, or badger. The second parameter,
 o, is optional.
 
