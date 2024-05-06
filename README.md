@@ -31,7 +31,7 @@ ops := &remember.Options{
     Prefix:   "myapp"          // A prefix to use for all keys for this client. Useful when multiple clients use the same database.
     DB:       0                // Database. Specifying 0 (the default) means use the default database.
     BadgerPath: ""             // The location for the badger database on disk. Defaults to ./badger
-	BuntDBPath: ""             // The location for the BuntDB database on disk. Use :memory: for in-memory.
+    BuntDBPath: ""             // The location for the BuntDB database on disk. Use :memory: for in-memory.
 }
 
 cache := remember.New(ops)
