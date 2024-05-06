@@ -24,7 +24,7 @@ cache, err := remember.New("redis") // Will use default options, suitable for de
 
 Or, specifying options:
 ~~~go
-ops := remember.Options{
+ops := &remember.Options{
     Server:   "localhost"      // The server where Redis exists.
     Port:     "6379"           // The port Redis is listening on.
     Password: "some_password"  // The password for Redis.
