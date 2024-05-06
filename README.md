@@ -67,7 +67,7 @@ func main() {
 	// Close the database pool when finished.
 	defer cache.Close()
 	
-	// Alternatively, use "badger" or "boltdb". Nothing else changes.
+	// Alternatively, use "badger" or "buntdb". Nothing else changes.
 	//cache, _ := remember.New("badger")
 	//cache, _ := remember.New("buntdb")
 
