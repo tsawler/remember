@@ -6,7 +6,8 @@
 
 # Remember
 
-Package remember provides an easy way to implement a Redis, BuntDB or Badger cache in your Go application. 
+Package remember provides an easy way to implement a [Redis](https://redis.io/), 
+[BuntDB](https://github.com/tidwall/buntdb) or [Badger](https://github.com/dgraph-io/badger) cache in your Go application. 
 
 ## Installation
 Install it in the usual way:
