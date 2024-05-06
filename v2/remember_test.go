@@ -7,7 +7,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	ops := Options{
+	ops := &Options{
 		Server: testRedis.Host(),
 		Port:   testRedis.Port(),
 		Prefix: "test_cache",

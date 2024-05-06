@@ -23,10 +23,10 @@ func TestMain(m *testing.M) {
 		Port:   testRedis.Port(),
 		Prefix: "test_cache",
 	}
-	testRedisCache, _ = New("redis", ops)
+	testRedisCache, _ = New("redis", &ops)
 	defer testRedisCache.Close()
 
-	testBadgerCache, _ = New("badger", Options{BadgerPath: "./testdata/badger"})
+	testBadgerCache, _ = New("badger", &Options{BadgerPath: "./testdata/badger"})
 	defer testBadgerCache.Close()
 
 	testBuntdbCache, _ = New("buntdb")

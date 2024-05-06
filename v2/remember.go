@@ -51,14 +51,14 @@ type Options struct {
 type CacheEntry map[string]any
 
 // New is a factory method which returns an instance of a CacheInterface.
-func New(cacheType string, o ...Options) (CacheInterface, error) {
-	var ops Options
+func New(cacheType string, o ...*Options) (CacheInterface, error) {
+	var ops *Options
 	if len(o) > 0 {
 		ops = o[0]
 	} else {
 		switch cacheType {
 		case "redis":
-			ops = Options{
+			ops = &Options{
 				Server:   "localhost",
 				Port:     "6379",
 				Password: "",
@@ -67,12 +67,12 @@ func New(cacheType string, o ...Options) (CacheInterface, error) {
 			}
 
 		case "badger":
-			ops = Options{
+			ops = &Options{
 				BadgerPath: "./badger",
 			}
 
 		case "buntdb":
-			ops = Options{
+			ops = &Options{
 				BuntDBPath: ":memory:",
 			}
 		}
