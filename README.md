@@ -12,7 +12,9 @@ Package remember provides an easy way to implement a [Redis](https://redis.io/),
 ## Installation
 Install it in the usual way:
 
-`go get -u github.com/tsawler/remember/v2`
+~~~
+go get -u github.com/tsawler/remember/v2
+~~~
 
 # Usage
 Create an instance of the `remember.Cache` type by using the `remember.New(cacheType string, o ...*Options)` function, and optionally
