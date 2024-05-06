@@ -1,4 +1,4 @@
-// Package remember provides an easy way to implement a Redis or Badger cache in your Go application.
+// Package remember provides an easy way to implement a Redis, BuntDB or Badger cache in your Go application.
 
 package remember
 
@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/redis/go-redis/v9"
+	"github.com/tidwall/buntdb"
 	"github.com/tsawler/toolbox"
 	"time"
 )
@@ -43,6 +44,7 @@ type Options struct {
 	Prefix     string // A prefix to use for all keys for this client.
 	DB         int    // Database. Specifying 0 (the default) means use the default database.
 	BadgerPath string // The location for the badger database on disk.
+	BuntDBPath string // The location for the BuntDB database on disk.
 }
 
 // CacheEntry is a map to hold values, so we can serialize them.
@@ -68,7 +70,13 @@ func New(cacheType string, o ...Options) (CacheInterface, error) {
 			ops = Options{
 				BadgerPath: "./badger",
 			}
+
+		case "buntdb":
+			ops = Options{
+				BuntDBPath: ":memory:",
+			}
 		}
+
 	}
 
 	switch cacheType {
@@ -91,6 +99,16 @@ func New(cacheType string, o ...Options) (CacheInterface, error) {
 			return nil, err
 		}
 		return &BadgerCache{
+			Conn:   client,
+			Prefix: ops.Prefix,
+		}, nil
+
+	case "buntdb":
+		client, err := buntdb.Open(ops.BuntDBPath)
+		if err != nil {
+			return nil, err
+		}
+		return &BuntDBCache{
 			Conn:   client,
 			Prefix: ops.Prefix,
 		}, nil
@@ -227,7 +245,7 @@ func (c *RedisCache) Empty() error {
 	return nil
 }
 
-// encode serializes a CacheEntry for storage in a cache.
+// encode serializes a CacheEntry for storage in the cache.
 func encode(item CacheEntry) ([]byte, error) {
 	b := bytes.Buffer{}
 	e := gob.NewEncoder(&b)
@@ -238,7 +256,7 @@ func encode(item CacheEntry) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-// decode deserializes an item from the cache into a map[string]any.
+// decode deserializes an item into a map[string]any.
 func decode(str string) (CacheEntry, error) {
 	item := CacheEntry{}
 	b := bytes.Buffer{}

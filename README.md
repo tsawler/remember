@@ -6,19 +6,20 @@
 
 # Remember
 
-Package remember provides an easy way to implement a Redis or Badger cache in your Go application. 
+Package remember provides an easy way to implement a Redis, BuntDB or Badger cache in your Go application. 
 
 ## Installation
 Install it in the usual way:
 
-`go get -u github.com/tsawler/remember`
+`go get -u github.com/tsawler/remember/v2`
 
 # Usage
-Create an instance of the `remember.Cache` type by using the `remember.New()` function, and optionally
-passing it a `remember.Options` variable:
+Create an instance of the `remember.Cache` type by using the `remember.New(cacheType string, o ...Options)` function, and optionally
+passing it a `remember.Options` variable.  `cacheType` can by redis, buntdb, or badger. The second parameter,
+o, is optional.
 
 ~~~go
-cache := remember.New() // Will use default options, suitable for development.
+cache, err := remember.New("redis") // Will use default options, suitable for development.
 ~~~
 
 Or, specifying options:
@@ -29,7 +30,8 @@ ops := remember.Options{
     Password: "some_password"  // The password for Redis.
     Prefix:   "myapp"          // A prefix to use for all keys for this client. Useful when multiple clients use the same database.
     DB:       0                // Database. Specifying 0 (the default) means use the default database.
-    BadgerPath ""              // The location for the badger database on disk. Defaults to ./badger
+    BadgerPath: ""             // The location for the badger database on disk. Defaults to ./badger
+	BuntDBPath: ""             // The location for the BuntDB database on disk. Use :memory: for in-memory.
 }
 
 cache := remember.New(ops)
@@ -43,7 +45,7 @@ package main
 import (
 	"encoding/gob"
 	"fmt"
-	"github.com/tsawler/remember"
+	"github.com/tsawler/remember/v2"
 	"log"
 	"os"
 	"time"
@@ -65,8 +67,9 @@ func main() {
 	// close the database pool when finished.
 	defer cache.Close()
 	
-	// Or create & connect to a Badger database. Nothing else changes.
-	// cache, _ := remember.New("badger", remember.Options{BadgerPath: "./badger"})
+	// Alternatively, use "badger" or "boltdb". Nothing else changes.
+	//cache, _ := remember.New("badger")
+	//cache, _ := remember.New("buntdb")
 
 	// Store a simple string in the cache.
 	fmt.Println("Putting value in the cache with key of foo")
