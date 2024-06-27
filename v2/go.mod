@@ -5,8 +5,8 @@ go 1.22
 require (
 	github.com/alicebob/miniredis/v2 v2.32.1
 	github.com/dgraph-io/badger/v3 v3.2103.5
-	github.com/redis/go-redis/v9 v9.5.1
-	github.com/tidwall/buntdb v1.3.0
+	github.com/redis/go-redis/v9 v9.5.3
+	github.com/tidwall/buntdb v1.3.1
 	github.com/tsawler/toolbox v1.3.1
 )
 
@@ -23,7 +23,7 @@ require (
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/flatbuffers v24.3.25+incompatible // indirect
-	github.com/klauspost/compress v1.17.8 // indirect
+	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/tidwall/btree v1.7.0 // indirect
 	github.com/tidwall/gjson v1.17.1 // indirect
@@ -34,7 +34,7 @@ require (
 	github.com/tidwall/tinyqueue v0.1.1 // indirect
 	github.com/yuin/gopher-lua v1.1.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/net v0.25.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
-	google.golang.org/protobuf v1.34.1 // indirect
+	golang.org/x/net v0.26.0 // indirect
+	golang.org/x/sys v0.21.0 // indirect
+	google.golang.org/protobuf v1.34.2 // indirect
 )
