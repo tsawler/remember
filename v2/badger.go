@@ -11,6 +11,7 @@ type BadgerCache struct {
 	Prefix string
 }
 
+// Has checks for existence of item in cache.
 func (b *BadgerCache) Has(str string) bool {
 	_, err := b.Get(str)
 	if err != nil {
